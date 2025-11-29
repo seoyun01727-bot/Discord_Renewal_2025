@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>고정 헤더 페이지</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #000;
+            /* 헤더 높이만큼 상단 여백 추가 - JavaScript로 동적 조정 */
+            padding-top: 0;
+        } 
+
+        /* 고정 헤더 스타일 - head.png 이미지 사용 */
+        .fixed-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            width: 100%;
+            background-image: url('head.png');
+            background-size: 100% auto;
+            background-position: center top;
+            background-repeat: no-repeat;
+            color: #fff;
+            z-index: 1000;
+            /* head.png 이미지의 높이에 맞춰 자동 조정 */
+            min-height: 80px;
+        }
+        
+        /* head.png 이미지에 이미 헤더 디자인이 포함되어 있으므로 내부 요소 완전히 숨김 */
+        .fixed-header > *,
+        .fixed-header .header-logo-area,
+        .fixed-header .discord-logo-icon,
+        .fixed-header .header-logo-text,
+        .fixed-header .header-nav,
+        .fixed-header .header-nav a,
+        .fixed-header .header-right,
+        .fixed-header .language-selector,
+        .fixed-header .header-button {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+        }
+
+        /* head.png 이미지의 실제 높이를 측정하여 헤더 높이 설정 */
+        .header-background-wrapper {
+            position: relative;
+            width: 100%;
+            padding-top: 0;
+        }
+
+        /* Discord 로고 영역 */
+        .header-logo-area {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .discord-logo-icon {
+            width: 28px;
+            height: 28px;
+            background-color: #5865f2;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        /* Discord 게임패드 아이콘 스타일 - 더 정확한 표현 */
+        .discord-logo-icon::before {
+            content: '';
+            width: 18px;
+            height: 18px;
+            background-color: #fff;
+            border-radius: 5px;
+            position: relative;
+        }
+
+        /* 게임패드의 두 눈 (작은 원) */
+        .discord-logo-icon::after {
+            content: '';
+            position: absolute;
+            width: 5px;
+            height: 5px;
+            background-color: #5865f2;
+            border-radius: 50%;
+            top: 6px;
+            left: 6px;
+            box-shadow: 8px 0 0 #5865f2;
+        }
+
+        .header-logo-text {
+            font-size: 20px;
+            font-weight: 700;
+            color: #fff;
+            font-family: 'Segoe UI', sans-serif;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+        }
+
+        /* 네비게이션 메뉴 */
+        .header-nav {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+            flex: 1;
+            justify-content: center;
+        }
+
+        .header-nav a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 600;
+            transition: color 0.2s;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+        }
+
+        .header-nav a:hover {
+            color: #5865f2;
+        }
+
+        /* 오른쪽 영역 (언어 선택기 + 로그인 버튼) */
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        /* 언어 선택기 */
+        .language-selector {
+            color: #b9bbbe;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .language-selector:hover {
+            color: #fff;
+        }
+
+        /* 로그인 버튼 - Discord 스타일 */
+        .header-button {
+            background-color: #b9bbbe;
+            color: #23272a;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+
+        .header-button:hover {
+            background-color: #dcddde;
+        }
+
+        /* 스크롤 가능한 본문 영역 */
+        .main-content {
+            width: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* 이미지 컨테이너 - 전체 너비, 세로로 긴 이미지 */
+        .image-container {
+            width: 100%;
+            display: block;
+        }
+
+        .image-container img {
+            width: 100%;
+            height: auto;
+            display: block;
+            object-fit: contain;
+            margin-top: -135px; /* 상단 검은 여백을 헤더 뒤로 숨기기 위해 위로 당김 */
+        }
+
+        /* 이미지가 없을 경우를 위한 플레이스홀더 */
+        .image-placeholder {
+            width: 100%;
+            min-height: 200vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 24px;
+            text-align: center;
+            padding: 40px;
+        }
+
+        /* 반응형 디자인 */
+        @media (max-width: 768px) {
+            .fixed-header {
+                padding: 0 15px;
+                min-height: 60px;
+            }
+
+            body {
+                padding-top: 60px;
+            }
+
+            .header-logo-text {
+                font-size: 18px;
+            }
+
+            .header-nav {
+                gap: 15px;
+            }
+
+            .header-nav a {
+                font-size: 14px;
+            }
+
+            .language-selector {
+                font-size: 12px;
+            }
+
+            .header-button {
+                padding: 8px 15px;
+                font-size: 12px;
+            }
+
+            .main-content {
+                padding: 0;
+            }
+
+            .image-container img {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 고정 헤더 - head.png 이미지만 표시 -->
+    <header class="fixed-header">
+        <!-- head.png 이미지에 이미 헤더 디자인이 포함되어 있으므로 내부 요소는 숨김 -->
+        <!--
+        <div class="header-logo-area">
+            <div class="discord-logo-icon"></div>
+            <span class="header-logo-text">Discord</span>
+        </div>
+        
+        <nav class="header-nav">
+            <a href="#download">다운로드</a>
+            <a href="#nitro">Nitro</a>
+            <a href="#design">디자인</a>
+            <a href="#support">지원</a>
+        </nav>
+        
+        <div class="header-right">
+            <div class="language-selector">KR / EN</div>
+            <button class="header-button">로그인</button>
+        </div>
+        -->
+    </header>
+
+    <!-- 스크롤 가능한 본문 콘텐츠 - body.png 이미지 사용 -->
+    <main class="main-content">
+        <div class="image-container">
+            <img src="./body.png" alt="본문 콘텐츠 이미지">
+        </div>
+    </main>
+
+    <script>
+        // head.png 이미지 로드 후 실제 높이를 측정하여 헤더와 body padding-top 조정
+        const headerImg = new Image();
+        headerImg.onload = function() {
+            // 이미지의 실제 높이를 가져옴
+            const imageHeight = this.height;
+            const imageWidth = this.width;
+            const viewportWidth = window.innerWidth;
+            
+            // 뷰포트 너비에 맞춰 조정된 높이 계산
+            const aspectRatio = imageHeight / imageWidth;
+            const adjustedHeight = viewportWidth * aspectRatio;
+            
+            const header = document.querySelector('.fixed-header');
+            header.style.height = adjustedHeight + 'px';
+            document.body.style.paddingTop = adjustedHeight + 'px';
+        };
+        headerImg.onerror = function() {
+            // 이미지 로드 실패 시 기본 높이 사용
+            document.body.style.paddingTop = '80px';
+        };
+        headerImg.src = './head.png';
+        
+        // 윈도우 리사이즈 시 높이 재조정
+        window.addEventListener('resize', function() {
+            if (headerImg.complete && headerImg.naturalHeight > 0) {
+                const imageHeight = headerImg.naturalHeight;
+                const imageWidth = headerImg.naturalWidth;
+                const viewportWidth = window.innerWidth;
+                const aspectRatio = imageHeight / imageWidth;
+                const adjustedHeight = viewportWidth * aspectRatio;
+                
+                const header = document.querySelector('.fixed-header');
+                header.style.height = adjustedHeight + 'px';
+                document.body.style.paddingTop = adjustedHeight + 'px';
+            }
+        });
+
+        // 부드러운 스크롤 효과 (선택사항)
+        document.querySelectorAll('.header-nav a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href').substring(1);
+                const targetElement = document.getElementById(targetId);
+                
+                if (targetElement) {
+                    // 헤더 높이를 고려한 스크롤 위치 계산
+                    const header = document.querySelector('.fixed-header');
+                    const headerHeight = header.offsetHeight;
+                    const targetPosition = targetElement.offsetTop - headerHeight;
+                    
+                    window.scrollTo({
+                        top: targetPosition,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
+
